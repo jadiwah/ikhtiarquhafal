@@ -292,7 +292,7 @@
     <div class="panel">
         <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
         
-        <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:12px;">
+        <input type="text" id="regName" placeholder="Nama" style="width:100%; margin-bottom:12px;">
         <input type="password" id="regPin" placeholder="Buat PIN Baru (min. 4 angka)" style="width:100%; margin-bottom:12px;">
         
         <div style="background: #f8fafc; border: 1px dashed var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
@@ -440,22 +440,7 @@ const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRec();
 recognition.interimResults = true;
 recognition.continuous = true;
-
-// --- BLOK 1: NAVIGASI DASAR (WAJIB DI ATAS) ---
-function toggleAuthMode() {
-const lb = document.getElementById('login-box');
-const rb = document.getElementById('register-box');
-const er = document.getElementById('login-err');
-if(er) er.innerText = "";
-if (lb.style.display !== 'none') {
-lb.style.display = 'none';
-rb.style.display = 'block';
-} else {
-lb.style.display = 'block';
-rb.style.display = 'none';
-}
-}
-
+        
 async function handleLogin() {
 const pinInput = document.getElementById('login-pin').value.trim();
 const errorEl = document.getElementById('login-err');
@@ -551,22 +536,25 @@ function handleRegisterSubmit() {
     });
 }
         
-       function toggleAuthMode() {
-    const loginBox = document.getElementById('login-box');
-    const registerBox = document.getElementById('register-box');
-    const errorDisplay = document.getElementById('login-err');
+function toggleAuthMode() {
+    const lb = document.getElementById('login-box');
+    const rb = document.getElementById('register-box');
+    const er = document.getElementById('login-err');
     
-    // Reset error message setiap kali pindah halaman
-    errorDisplay.textContent = "";
-
-    if (loginBox.style.display === "none") {
-        loginBox.style.display = "block";
-        registerBox.style.display = "none";
-    } else {
-        loginBox.style.display = "none";
-        registerBox.style.display = "block";
+    // Amankan pesan error agar tidak null
+    if (er) er.innerText = "";
+    
+    if (lb && rb) {
+        // Cek jika register-box sedang tersembunyi, maka tampilkan register-box
+        if (rb.style.display === 'none' || rb.style.display === '') {
+            lb.style.display = 'none';
+            rb.style.display = 'block';
+        } else {
+            lb.style.display = 'block';
+            rb.style.display = 'none';
+        }
     }
-} 
+}
     function handleLogout() {
     currentUser = null;
     document.getElementById('main-app').style.display = 'none';
