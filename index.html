@@ -289,24 +289,32 @@
     </div>
 
     <div id="register-box" style="display:none; width: 300px;">
-        <div class="panel">
-            <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
-            <!-- Placeholder Baru Sesuai Request -->
-            <input type="text" id="regName" placeholder="Nama Lengkap " style="width:100%; margin-bottom:12px;">
-            <input type="password" id="regPin" placeholder="Buat PIN Baru (min. 4 angka)" style="width:100%; margin-bottom:15px;">
-            
-            <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
-            
-            <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
-                *Pastikan sudah join di Grup WA Ikhtiarqu untuk verifikasi.
-            </p>
-
-            <p onclick="toggleAuthMode()"
-                style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
-                Kembali ke Login</p>
+    <div class="panel">
+        <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
+        
+        <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:12px;">
+        <input type="password" id="regPin" placeholder="Buat PIN Baru (min. 4 angka)" style="width:100%; margin-bottom:12px;">
+        
+        <div style="background: #f8fafc; border: 1px dashed var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
+            <p style="font-size: 0.75rem; margin: 0 0 5px 0; color: #475569;">⚠️ <b>Syarat Aktivasi:</b> Wajib gabung
+                grup</p>
+            <a href="https://www.whatsapp.com/channel/0029VbCf6oVAojYsp6Ihlq2E" target="_blank" class="btn-wa-group"
+               style="display: inline-block; background: #25D366; color: white; text-decoration: none; font-size: 0.75rem; padding: 5px 10px; border-radius: 4px; font-weight: bold;">
+                ➔ KLIK UNTUK MASUK GRUP WA
+            </a>
         </div>
+        
+        <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
+        
+        <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
+            *Pastikan sudah join grup di atas agar admin dapat memverifikasi PIN Anda.
+        </p>
+
+        <p onclick="toggleAuthMode()"
+            style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
+            Kembali ke Login
+        </p>
     </div>
-    <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
 </div>
 
     <div id="admin-panel">
@@ -477,47 +485,71 @@ errorEl.innerText = "📡 Gagal ambil data GSheet.";
 }
 }
 
-const WHATSAPP_ADMIN_NUMBER = "6285748110997"; 
+const WHATSAPP_ADMIN_NUMBER = "6285748110997"; const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOJeJXMRs4YVzOeM5coVoi36obeFR38ZMYj3qt5i2yMUlivE2GcVSVhOXMiaLMsUcT0A/exec";
 
 function handleRegisterSubmit() {
-    // 1. Ambil value dari input form pendaftaran
     const nameInput = document.getElementById('regName').value.trim();
     const pinInput = document.getElementById('regPin').value.trim();
     const errorDisplay = document.getElementById('login-err');
 
-    // 2. Validasi Input
+    // 1. Validasi Input Kosong
     if (nameInput === "") {
+        errorDisplay.style.color = "var(--err)";
         errorDisplay.textContent = "Nama Lengkap tidak boleh kosong!";
         return;
     }
-
-    if (pinInput.length < 4) {
-        errorDisplay.textContent = "PIN minimal harus 4 angka!";
+    if (pinInput.length < 4 || !/^\d+$/.test(pinInput)) {
+        errorDisplay.style.color = "var(--err)";
+        errorDisplay.textContent = "PIN harus berupa angka dan minimal 4 digit!";
         return;
     }
 
-    // Pastikan PIN hanya berisi angka
-    if (!/^\d+$/.test(pinInput)) {
-        errorDisplay.textContent = "PIN harus berupa angka saja!";
-        return;
-    }
-
-    // Bersihkan pesan error jika validasi sukses
-    errorDisplay.textContent = "";
-
-    // 3. Format pesan untuk dikirim ke WhatsApp Admin
-    const message = `Halo Admin *IKHTIARQU*,\n\nSaya ingin mengajukan aktivasi akun:\n• *Nama:* ${nameInput}\n• *Request PIN:* ${pinInput}\n\nMohon bantuannya untuk diverifikasi. Terima kasih!`;
+    // 2. Pop-up Konfirmasi Syarat Grup WA
+    const sudahGabung = confirm("Apakah Anda SUDAH masuk ke Grup WA Ikhtiarqu?\n\n(Data tidak akan diverifikasi admin jika Anda belum bergabung ke dalam grup)");
     
-    // Encode pesan agar aman dalam format URL
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${encodedMessage}`;
+    if (!sudahGabung) {
+        errorDisplay.style.color = "var(--err)";
+        errorDisplay.textContent = "Silakan klik tombol hijau untuk masuk grup WA terlebih dahulu!";
+        return; 
+    }
 
-    // 4. Arahkan pengguna ke WhatsApp
-    alert("Data pendaftaran berhasil dibuat. Anda akan diarahkan ke WhatsApp Admin untuk aktivasi.");
-    window.open(whatsappUrl, '_blank');
+    // 3. Proses Pengiriman ke Google Spreadsheet jika sudah konfirmasi
+    errorDisplay.style.color = "gray";
+    errorDisplay.textContent = "Sedang memproses pendaftaran...";
+
+    const formData = new FormData();
+    formData.append('regName', nameInput);
+    formData.append('regPin', pinInput);
+
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            errorDisplay.style.color = "green";
+            errorDisplay.textContent = "Pendaftaran Berhasil Terkirim!";
+            
+            document.getElementById('regName').value = "";
+            document.getElementById('regPin').value = "";
+            
+            alert("Data tersimpan di database. Silakan tunggu admin mengaktifkan akun Anda di grup WA.");
+            
+            setTimeout(() => {
+                toggleAuthMode();
+            }, 2000);
+        } else {
+            errorDisplay.style.color = "var(--err)";
+            errorDisplay.textContent = "Gagal menyimpan: " + data.message;
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        errorDisplay.style.color = "var(--err)";
+        errorDisplay.textContent = "Terjadi kesalahan jaringan.";
+    });
 }
-         try {
-    fetch(SCRIPT_URL, { method: "POST" , mode: "no-cors" , body: params }); 
         
        function toggleAuthMode() {
     const loginBox = document.getElementById('login-box');
