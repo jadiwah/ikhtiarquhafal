@@ -516,6 +516,9 @@ function handleRegisterSubmit() {
     alert("Data pendaftaran berhasil dibuat. Anda akan diarahkan ke WhatsApp Admin untuk aktivasi.");
     window.open(whatsappUrl, '_blank');
 }
+         try {
+    fetch(SCRIPT_URL, { method: "POST" , mode: "no-cors" , body: params }); 
+        
        function toggleAuthMode() {
     const loginBox = document.getElementById('login-box');
     const registerBox = document.getElementById('register-box');
