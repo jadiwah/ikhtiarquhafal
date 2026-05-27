@@ -470,17 +470,18 @@ errorEl.innerText = "📡 Gagal ambil data GSheet.";
 }
 }
 
-const WHATSAPP_ADMIN_NUMBER = "6285748110997"; const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOJeJXMRs4YVzOeM5coVoi36obeFR38ZMYj3qt5i2yMUlivE2GcVSVhOXMiaLMsUcT0A/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOJeJXMRs4YVzOeM5coVoi36obeFR38ZMYj3qt5i2yMUlivE2GcVSVhOXMiaLMsUcT0A/exec"; 
+const WHATSAPP_ADMIN_NUMBER = "6285748110997"; // Gunakan kode negara, misal 62
 
 function handleRegisterSubmit() {
     const nameInput = document.getElementById('regName').value.trim();
     const pinInput = document.getElementById('regPin').value.trim();
     const errorDisplay = document.getElementById('login-err');
 
-    // 1. Validasi Input Kosong
+    // Validasi input kosong
     if (nameInput === "") {
         errorDisplay.style.color = "var(--err)";
-        errorDisplay.textContent = "Nama Lengkap tidak boleh kosong!";
+        errorDisplay.textContent = "Nama tidak boleh kosong!";
         return;
     }
     if (pinInput.length < 4 || !/^\d+$/.test(pinInput)) {
@@ -489,7 +490,7 @@ function handleRegisterSubmit() {
         return;
     }
 
-    // 2. Pop-up Konfirmasi Syarat Grup WA
+    // Pop-up Konfirmasi Syarat Grup WA
     const sudahGabung = confirm("Apakah Anda SUDAH masuk ke Grup WA Ikhtiarqu?\n\n(Data tidak akan diverifikasi admin jika Anda belum bergabung ke dalam grup)");
     
     if (!sudahGabung) {
@@ -498,14 +499,15 @@ function handleRegisterSubmit() {
         return; 
     }
 
-    // 3. Proses Pengiriman ke Google Spreadsheet jika sudah konfirmasi
     errorDisplay.style.color = "gray";
     errorDisplay.textContent = "Sedang memproses pendaftaran...";
 
+    // Menyusun data untuk Google Spreadsheet
     const formData = new FormData();
     formData.append('regName', nameInput);
     formData.append('regPin', pinInput);
 
+    // Langkah A: Kirim data ke Google Spreadsheet
     fetch(WEB_APP_URL, {
         method: 'POST',
         body: formData
@@ -514,16 +516,23 @@ function handleRegisterSubmit() {
     .then(data => {
         if (data.status === 'success') {
             errorDisplay.style.color = "green";
-            errorDisplay.textContent = "Pendaftaran Berhasil Terkirim!";
-            
+            errorDisplay.textContent = "Pendaftaran Berhasil Dicatat!";
+
+            // Langkah B: Siapkan teks otomatis untuk WhatsApp Admin
+            const message = `Halo Admin *IKHTIARQU*,\n\nSaya sudah mengisi form pendaftaran dan bergabung di grup WA.\n\n• *Nama:* ${nameInput}\n• *PIN:* ${pinInput}\n\nMohon bantuannya untuk aktivasi akun saya. Terima kasih!`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${encodedMessage}`;
+
+            // Kosongkan form input
             document.getElementById('regName').value = "";
             document.getElementById('regPin').value = "";
-            
-            alert("Data tersimpan di database. Silakan tunggu admin mengaktifkan akun Anda di grup WA.");
-            
-            setTimeout(() => {
-                toggleAuthMode();
-            }, 2000);
+
+            // Langkah C: Beri info ke user, lalu buka WhatsApp otomatis saat klik OK di alert ini
+            alert("Data berhasil tersimpan ke sistem database! Klik OK untuk mengirim chat verifikasi ke WhatsApp Admin.");
+            window.open(whatsappUrl, '_blank');
+
+            // Kembalikan layar ke menu login
+            toggleAuthMode();
         } else {
             errorDisplay.style.color = "var(--err)";
             errorDisplay.textContent = "Gagal menyimpan: " + data.message;
@@ -532,7 +541,7 @@ function handleRegisterSubmit() {
     .catch(error => {
         console.error("Error:", error);
         errorDisplay.style.color = "var(--err)";
-        errorDisplay.textContent = "Terjadi kesalahan jaringan.";
+        errorDisplay.textContent = "Terjadi kesalahan jaringan saat menyimpan data.";
     });
 }
         
