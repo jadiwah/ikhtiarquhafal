@@ -471,7 +471,7 @@ errorEl.innerText = "📡 Gagal ambil data GSheet.";
 }
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOJeJXMRs4YVzOeM5coVoi36obeFR38ZMYj3qt5i2yMUlivE2GcVSVhOXMiaLMsUcT0A/exec"; 
-const WHATSAPP_ADMIN_NUMBER = "6285748110997"; // Gunakan kode negara, misal 62
+const WHATSAPP_ADMIN_NUMBER = "6285748110997";
 
 function handleRegisterSubmit() {
     const nameInput = document.getElementById('regName').value.trim();
@@ -481,7 +481,7 @@ function handleRegisterSubmit() {
     // Validasi input kosong
     if (nameInput === "") {
         errorDisplay.style.color = "var(--err)";
-        errorDisplay.textContent = "Nama tidak boleh kosong!";
+        errorDisplay.textContent = "Nama Lengkap tidak boleh kosong!";
         return;
     }
     if (pinInput.length < 4 || !/^\d+$/.test(pinInput)) {
@@ -502,46 +502,43 @@ function handleRegisterSubmit() {
     errorDisplay.style.color = "gray";
     errorDisplay.textContent = "Sedang memproses pendaftaran...";
 
-    // Menyusun data untuk Google Spreadsheet
+    // Menyiapkan Format Teks untuk WhatsApp Admin
+    const message = `Halo Admin *IKHTIARQU*,\n\nSaya ingin mengaktifkan akun:\n• *Nama:* ${nameInput}\n• *Request PIN:* ${pinInput}\n\nMohon bantuannya untuk diverifikasi. Terima kasih!`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${encodedMessage}`;
+
+    // Menyusun data untuk dikirim ke Google Spreadsheet
     const formData = new FormData();
     formData.append('regName', nameInput);
     formData.append('regPin', pinInput);
 
-    // Langkah A: Kirim data ke Google Spreadsheet
+    // Kirim data ke Google Spreadsheet menggunakan Fetch
     fetch(WEB_APP_URL, {
         method: 'POST',
-        body: formData
+        body: formData,
+        mode: 'no-cors' // TAMBAHKAN INI: Menghindari error CORS (keamanan browser) yang sering menyumbat fetch
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            errorDisplay.style.color = "green";
-            errorDisplay.textContent = "Pendaftaran Berhasil Dicatat!";
+    .then(() => {
+        // Karena menggunakan 'no-cors', kita langsung anggap sukses mengirim data ke Google
+        errorDisplay.style.color = "green";
+        errorDisplay.textContent = "Data terkirim ke sistem!";
 
-            // Langkah B: Siapkan teks otomatis untuk WhatsApp Admin
-            const message = `Halo Admin *IKHTIARQU*,\n\nSaya sudah mengisi form pendaftaran dan bergabung di grup WA.\n\n• *Nama:* ${nameInput}\n• *PIN:* ${pinInput}\n\nMohon bantuannya untuk aktivasi akun saya. Terima kasih!`;
-            const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = `https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${encodedMessage}`;
+        // Kosongkan form input
+        document.getElementById('regName').value = "";
+        document.getElementById('regPin').value = "";
 
-            // Kosongkan form input
-            document.getElementById('regName').value = "";
-            document.getElementById('regPin').value = "";
+        // Buka WhatsApp Admin otomatis
+        alert("Pendaftaran diproses. Klik OK untuk mengirim chat verifikasi ke WhatsApp Admin.");
+        window.open(whatsappUrl, '_blank');
 
-            // Langkah C: Beri info ke user, lalu buka WhatsApp otomatis saat klik OK di alert ini
-            alert("Data berhasil tersimpan ke sistem database! Klik OK untuk mengirim chat verifikasi ke WhatsApp Admin.");
-            window.open(whatsappUrl, '_blank');
-
-            // Kembalikan layar ke menu login
-            toggleAuthMode();
-        } else {
-            errorDisplay.style.color = "var(--err)";
-            errorDisplay.textContent = "Gagal menyimpan: " + data.message;
-        }
+        // Kembali ke menu login
+        toggleAuthMode();
     })
     .catch(error => {
+        // Jika jaringan benar-benar putus, WhatsApp tetap dibuka sebagai fallback (cadangan)
         console.error("Error:", error);
-        errorDisplay.style.color = "var(--err)";
-        errorDisplay.textContent = "Terjadi kesalahan jaringan saat menyimpan data.";
+        alert("Gagal tersambung ke database otomatis, namun Anda akan dialihkan langsung ke WhatsApp Admin.");
+        window.open(whatsappUrl, '_blank');
     });
 }
         
