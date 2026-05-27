@@ -276,35 +276,38 @@
 
 <body>
 
-    <div id="auth-screen">
-        <h1 style="color:var(--accent); letter-spacing: 4px; margin-bottom: 5px;">IKHTIARQU</h1>
-        <p style="color: #64748b; margin-bottom: 20px;">Hafalan Jalur Langit</p>
+  <div id="auth-screen">
+    <h1 style="color:var(--accent); letter-spacing: 4px; margin-bottom: 5px;">IKHTIARQU</h1>
+    <p style="color: #64748b; margin-bottom: 20px;">Hafalan Jalur Langit</p>
 
-        <div id="login-box" style="text-align: center;">
-            <input type="password" id="login-pin" placeholder="PIN" style="text-align:center; font-size:1.5rem; width:150px; margin-bottom:15px;"><br>
-            <button onclick="handleLogin()" class="btn-accent" style="width:150px;">MASUK</button>
-            <p onclick="toggleAuthMode()"
-                style="color:var(--accent); cursor:pointer; font-size: 0.8rem; margin-top: 15px;">Belum punya PIN?
-                Daftar di sini</p>
-        </div>
-
-        <div id="register-box" style="display:none; width: 300px;">
-            <div class="panel">
-                <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
-                <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:8px;">
-                <input type="email" id="regEmail" placeholder="Email" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regWA" placeholder="No. WhatsApp" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regDomisili" placeholder="Domisili" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regIG" placeholder="Instagram (tidak punya isi-)" style="width:100%; margin-bottom:8px;">
-                <input type="password" id="regPin" placeholder="Request PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
-                <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
-                <p onclick="toggleAuthMode()"
-                    style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
-                    Kembali ke Login</p>
-            </div>
-        </div>
-        <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
+    <div id="login-box" style="text-align: center;">
+        <input type="password" id="login-pin" placeholder="PIN" style="text-align:center; font-size:1.5rem; width:150px; margin-bottom:15px;"><br>
+        <button onclick="handleLogin()" class="btn-accent" style="width:150px;">MASUK</button>
+        <p onclick="toggleAuthMode()"
+            style="color:var(--accent); cursor:pointer; font-size: 0.8rem; margin-top: 15px;">Belum punya PIN?
+            Daftar di sini</p>
     </div>
+
+    <div id="register-box" style="display:none; width: 300px;">
+        <div class="panel">
+            <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
+            <!-- Placeholder Baru Sesuai Request -->
+            <input type="text" id="regName" placeholder="Nama Lengkap " style="width:100%; margin-bottom:12px;">
+            <input type="password" id="regPin" placeholder="Buat PIN Baru (min. 4 angka)" style="width:100%; margin-bottom:15px;">
+            
+            <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
+            
+            <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
+                *Pastikan sudah join di Grup WA Ikhtiarqu untuk verifikasi.
+            </p>
+
+            <p onclick="toggleAuthMode()"
+                style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
+                Kembali ke Login</p>
+        </div>
+    </div>
+    <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
+</div>
 
     <div id="admin-panel">
         <h2 style="color:var(--admin)">🛡️ Developer Mode</h2>
@@ -474,20 +477,61 @@ errorEl.innerText = "📡 Gagal ambil data GSheet.";
 }
 }
 
-async function handleRegisterSubmit() {
-const name = document.getElementById('regName').value.trim();
-const email = document.getElementById('regEmail').value.trim();
-const wa = document.getElementById('regWA').value.trim();
-const dom = document.getElementById('regDomisili').value.trim();
-const ig = document.getElementById('regIG').value.trim() || "-";
-const pin = document.getElementById('regPin').value.trim();
-if (!name || !wa || pin.length < 4) return alert("Lengkapi data!"); const params=new URLSearchParams();
-    params.append('action', 'register' ); params.append('name', name); params.append('email', email);
-    params.append('wa', wa); params.append('domisili', dom); params.append('ig', ig); params.append('pin', pin); try {
-    fetch(SCRIPT_URL, { method: "POST" , mode: "no-cors" , body: params }); const pesan=`Assalamu'alaikum Admin,
-    aktivasi akun Ikhtiarqu:%0ANama: ${name}%0ADomisili: ${dom}%0APIN: ${pin}`;
-    window.open(`https://wa.me/6285748110997?text=${pesan}`, '_blank' ); alert("Terdaftar! Tunggu aktivasi Admin.");
-    location.reload(); } catch (e) { alert("Gagal koneksi."); } }
+const WHATSAPP_ADMIN_NUMBER = "6285748110997"; 
+
+function handleRegisterSubmit() {
+    // 1. Ambil value dari input form pendaftaran
+    const nameInput = document.getElementById('regName').value.trim();
+    const pinInput = document.getElementById('regPin').value.trim();
+    const errorDisplay = document.getElementById('login-err');
+
+    // 2. Validasi Input
+    if (nameInput === "") {
+        errorDisplay.textContent = "Nama Lengkap tidak boleh kosong!";
+        return;
+    }
+
+    if (pinInput.length < 4) {
+        errorDisplay.textContent = "PIN minimal harus 4 angka!";
+        return;
+    }
+
+    // Pastikan PIN hanya berisi angka
+    if (!/^\d+$/.test(pinInput)) {
+        errorDisplay.textContent = "PIN harus berupa angka saja!";
+        return;
+    }
+
+    // Bersihkan pesan error jika validasi sukses
+    errorDisplay.textContent = "";
+
+    // 3. Format pesan untuk dikirim ke WhatsApp Admin
+    const message = `Halo Admin *IKHTIARQU*,\n\nSaya ingin mengajukan aktivasi akun:\n• *Nama:* ${nameInput}\n• *Request PIN:* ${pinInput}\n\nMohon bantuannya untuk diverifikasi. Terima kasih!`;
+    
+    // Encode pesan agar aman dalam format URL
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${WHATSAPP_ADMIN_NUMBER}?text=${encodedMessage}`;
+
+    // 4. Arahkan pengguna ke WhatsApp
+    alert("Data pendaftaran berhasil dibuat. Anda akan diarahkan ke WhatsApp Admin untuk aktivasi.");
+    window.open(whatsappUrl, '_blank');
+}
+       function toggleAuthMode() {
+    const loginBox = document.getElementById('login-box');
+    const registerBox = document.getElementById('register-box');
+    const errorDisplay = document.getElementById('login-err');
+    
+    // Reset error message setiap kali pindah halaman
+    errorDisplay.textContent = "";
+
+    if (loginBox.style.display === "none") {
+        loginBox.style.display = "block";
+        registerBox.style.display = "none";
+    } else {
+        loginBox.style.display = "none";
+        registerBox.style.display = "block";
+    }
+} 
     function handleLogout() {
     currentUser = null;
     document.getElementById('main-app').style.display = 'none';
