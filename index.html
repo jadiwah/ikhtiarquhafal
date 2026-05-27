@@ -288,23 +288,33 @@
                 Daftar di sini</p>
         </div>
 
-        <div id="register-box" style="display:none; width: 300px;">
-            <div class="panel">
-                <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
-                <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:8px;">
-                <input type="email" id="regEmail" placeholder="Email" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regWA" placeholder="No. WhatsApp" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regDomisili" placeholder="Domisili" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regIG" placeholder="Instagram (tidak punya isi-)" style="width:100%; margin-bottom:8px;">
-                <input type="password" id="regPin" placeholder="Request PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
-                <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
-                <p onclick="toggleAuthMode()"
-                    style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
-                    Kembali ke Login</p>
-            </div>
+<div id="register-box" style="display:none; width: 300px;">
+    <div class="panel">
+        <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
+       
+        <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:12px;">
+        <input type="password" id="regPin" placeholder="Buat PIN Baru (min. 4 angka)" style="width:100%; margin-bottom:12px;">
+       
+        <div style="background: #f8fafc; border: 1px dashed var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
+            <p style="font-size: 0.75rem; margin: 0 0 5px 0; color: #475569;">⚠️ <b>Syarat Aktivasi:</b> Wajib gabung grup</p>
+            <a href="https://www.whatsapp.com/channel/0029VbCf6oVAojYsp6Ihlq2E" target="_blank" class="btn-wa-group"
+               style="display: inline-block; background: #25D366; color: white; text-decoration: none; font-size: 0.75rem; padding: 5px 10px; border-radius: 4px; font-weight: bold;">
+                ➔ KLIK UNTUK MASUK GRUP WA
+            </a>
         </div>
-        <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
+       
+        <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
+       
+        <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
+            *Pastikan sudah join grup di atas agar admin dapat memverifikasi PIN Anda.
+        </p>
+
+        <p onclick="toggleAuthMode()"
+            style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
+            Kembali ke Login
+        </p>
     </div>
+</div>
 
     <div id="admin-panel">
         <h2 style="color:var(--admin)">🛡️ Developer Mode</h2>
