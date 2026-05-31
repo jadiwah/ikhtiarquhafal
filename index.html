@@ -288,29 +288,31 @@
                 Daftar di sini</p>
         </div>
 
-<div id="register-box" style="display:none; width: 300px;">
-    <div class="panel">
-        <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
-        <input type="text" id="regName" placeholder="Nama" style="width:100%; margin-bottom:8px;">
-        <input type="password" id="regPin" placeholder="Buat PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
+        <div id="register-box" style="display:none; width: 300px;">
+            <div class="panel">
+                <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
+                <input type="text" id="regName" placeholder="Nama" style="width:100%; margin-bottom:8px;">
+                <input type="password" id="regPin" placeholder="Buat PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
                 <div
                     style="background: #f8fafc; border: 1px dashed var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
-                    <p style="font-size: 0.75rem; margin: 0 0 5px 0; color: #475569;">⚠️ <b>Syarat Aktivasi:</b> Jadi anggota  grup</p>
-                    <a href="https://www.whatsapp.com/channel/0029VbCf6oVAojYsp6Ihlq2E" target="_blank" class="btn-wa-group"
+                    <p style="font-size: 0.75rem; margin: 0 0 5px 0; color: #475569;">⚠️ <b>Syarat Aktivasi:</b> Jadi
+                        anggota grup</p>
+                    <a href="https://www.whatsapp.com/channel/0029VbCf6oVAojYsp6Ihlq2E" target="_blank"
+                        class="btn-wa-group"
                         style="display: inline-block; background: #25D366; color: white; text-decoration: none; font-size: 0.75rem; padding: 5px 10px; border-radius: 4px; font-weight: bold;">
                         ➔ KLIK UNTUK MASUK GRUP WA
                     </a>
                 </div>
-        <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
+                <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
                 <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
                     *Pastikan sudah join grup di atas agar admin dapat memverifikasi PIN Anda.
                 </p>
-        <p onclick="toggleAuthMode()"
-            style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
-            Kembali ke Login
-        </p>
-    </div>
-</div>
+                <p onclick="toggleAuthMode()"
+                    style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
+                    Kembali ke Login
+                </p>
+            </div>
+        </div>
         <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
     </div>
 
@@ -424,172 +426,191 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuFzZ6fpkzazcUgQY8QSTP04BIBALuQH2YKhlrCaYCHX9QLhKN8AkAuMFlyKoU7jUXEg/exec ";
 
+    let currentUser = null;
+    let score = parseInt(localStorage.getItem('iq_score')) || 0;
+    let corrects = parseInt(localStorage.getItem('iq_corrects')) || 0;
+    let history = JSON.parse(localStorage.getItem('iq_history')) || [];
+    let logHafalan = JSON.parse(localStorage.getItem('iq_log')) || [];
+    let quizMode = '', curSess = 0, maxSess = 0, targetAyah = null, lastSpeech = '', currentAudio = null, ayahQueue = [];
 
-let currentUser = null;
-let score = parseInt(localStorage.getItem('iq_score')) || 0;
-let corrects = parseInt(localStorage.getItem('iq_corrects')) || 0;
-let history = JSON.parse(localStorage.getItem('iq_history')) || [];
-let logHafalan = JSON.parse(localStorage.getItem('iq_log')) || [];
-let quizMode = '', curSess = 0, maxSess = 0, targetAyah = null, lastSpeech = '', currentAudio = null, ayahQueue = [];
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRec();
+    recognition.interimResults = true;
+    recognition.continuous = true;
 
-const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRec();
-recognition.interimResults = true;
-recognition.continuous = true;
-
-// --- BLOK 1: NAVIGASI DASAR (WAJIB DI ATAS) ---
-function toggleAuthMode() {
-const lb = document.getElementById('login-box');
-const rb = document.getElementById('register-box');
-const er = document.getElementById('login-err');
-if(er) er.innerText = "";
-if (lb.style.display !== 'none') {
-lb.style.display = 'none';
-rb.style.display = 'block';
-} else {
-lb.style.display = 'block';
-rb.style.display = 'none';
-}
-}
-
-async function handleLogin() {
-const pinInput = document.getElementById('login-pin').value.trim();
-const errorEl = document.getElementById('login-err');
-if (!pinInput) return alert("Masukkan PIN!");
-errorEl.innerText = "⌛ Menghubungkan ke langit...";
-try {
-const response = await fetch(SCRIPT_URL);
-const allUsers = await response.json();
-const user = allUsers.find(u => u.pin.toString() === pinInput);
-if (user) {
-if (user.status === 'active') {
-currentUser = user;
-document.getElementById('auth-screen').style.display = 'none';
-document.getElementById('main-app').style.display = 'block';
-document.getElementById('display-name').innerText = user.name;
-if(pinInput === "2399") document.getElementById('admin-btn').style.display = 'inline-block';
-updateStats();
-updateLogDisplay();
-} else {
-errorEl.innerText = "🚫 Akun belum aktif.";
-}
-} else {
-errorEl.innerText = "❌ PIN tidak ditemukan.";
-}
-} catch (e) {
-errorEl.innerText = "📡 Gagal ambil data GSheet.";
-}
-}
-
-
-async function handleRegisterSubmit() {
-    const name = document.getElementById('regName').value.trim();
-    const pin = document.getElementById('regPin').value.trim();
-
-    if (!name || pin.length < 4) {
-        return alert("Nama harus diisi dan PIN minimal 4 angka!");
-    }
-
-    const formData = {
-        action: 'register',
-        name: name,
-        pin: pin
-    };
-
-    try {
-        // Menggunakan metode POST yang clean untuk menghindari CORS error
-        const response = await fetch(SCRIPT_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify(formData)
-        });
-
-        const result = await response.json();
-
-        if (result.status === "success") {
-            const pesan = `Assalamu'alaikum Admin, mohon aktivasi akun Ikhtiarqu baru saya:\nNama: ${name}\nPIN: ${pin}`;
-            
-            alert("Registrasi sukses di database! Klik Oke untuk mengirim pesan aktivasi ke WhatsApp Admin.");
-            
-            // Membuka WhatsApp di tab baru secara aman
-            window.open(`https://wa.me/6285748110997?text=${encodeURIComponent(pesan)}`, '_blank');
-            
-            location.reload();
+    // --- BLOK 1: NAVIGASI DASAR ---
+    function toggleAuthMode() {
+        const lb = document.getElementById('login-box');
+        const rb = document.getElementById('register-box');
+        const er = document.getElementById('login-err');
+        if (er) er.innerText = "";
+        if (lb.style.display !== 'none') {
+            lb.style.display = 'none';
+            rb.style.display = 'block';
         } else {
-            alert("Gagal mendaftar di server: " + result.message);
+            lb.style.display = 'block';
+            rb.style.display = 'none';
         }
-    } catch (e) {
-        console.error("Detail Error:", e);
-        alert("Gagal koneksi ke server Google Sheets.\n\nTips: Pastikan URL Web App sudah benar dan diset ke 'Anyone' pada Apps Script.");
     }
-}    
-        function handleLogout() {
-    currentUser = null;
-    document.getElementById('main-app').style.display = 'none';
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('login-pin').value = '';
-    if (currentAudio) currentAudio.pause();
+
+    async function handleLogin() {
+        const pinInput = document.getElementById('login-pin').value.trim();
+        const errorEl = document.getElementById('login-err');
+        if (!pinInput) return alert("Masukkan PIN!");
+        errorEl.innerText = "⌛ Menghubungkan ke langit...";
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const allUsers = await response.json();
+            const user = allUsers.find(u => u.pin.toString() === pinInput);
+            if (user) {
+                if (user.status === 'active') {
+                    currentUser = user;
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'block';
+                    document.getElementById('display-name').innerText = user.name;
+                    if (pinInput === "2399") document.getElementById('admin-btn').style.display = 'inline-block';
+                    updateStats();
+                    updateLogDisplay();
+                } else {
+                    errorEl.innerText = "🚫 Akun belum aktif.";
+                }
+            } else {
+                errorEl.innerText = "❌ PIN tidak ditemukan.";
+            }
+        } catch (e) {
+            errorEl.innerText = "📡 Gagal ambil data GSheet.";
+        }
+    }
+
+    // FUNGSI REGISTER BARU (2 INPUT: NAMA & PIN)
+    async function handleRegisterSubmit() {
+        const name = document.getElementById('regName').value.trim();
+        const pin = document.getElementById('regPin').value.trim();
+
+        if (!name || pin.length < 4) {
+            return alert("Nama harus diisi dan PIN minimal 4 angka!");
+        }
+
+        const formData = {
+            action: 'register',
+            name: name,
+            pin: pin
+        };
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+                const pesan = `Assalamu'alaikum Admin, mohon aktivasi akun Ikhtiarqu baru saya:\nNama: ${name}\nPIN: ${pin}`;
+                alert("Registrasi sukses! Klik Oke untuk mengirim pesan aktivasi ke WhatsApp Admin.");
+                window.open(`https://wa.me/6285748110997?text=${encodeURIComponent(pesan)}`, '_blank');
+                location.reload();
+            } else {
+                alert("Gagal mendaftar: " + result.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Gagal koneksi ke server Google Sheets.");
+        }
+    }
+
+    function handleLogout() {
+        currentUser = null;
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('login-pin').value = '';
+        if (currentAudio) currentAudio.pause();
     }
 
     // --- ADMIN PANEL ---
-    function openAdmin() { document.getElementById('admin-panel').style.display = 'flex'; renderUserAdmin(); }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+    function openAdmin() { 
+        document.getElementById('admin-panel').style.display = 'flex'; 
+        renderUserAdmin(); 
+    }
+    
+    function closeAdmin() { 
+        document.getElementById('admin-panel').style.display = 'none'; 
+    }
+    
     function renderUserAdmin() {
-    const list = document.getElementById('user-list-admin');
-    list.innerHTML = users.length ? '' : 'Memuat data...';
-    users.forEach((u, i) => {
-    list.innerHTML += `<div class="panel" style="padding:10px; margin-bottom:5px; font-size:0.8rem;">
-        <b>${u.name}</b> (${u.pin}) - ${u.status.toUpperCase()}<br>
-        <p style="margin:5px 0; color:#94a3b8">${u.domisili || 'No Dom'}</p>
-    </div>`;
-    });
+        const list = document.getElementById('user-list-admin');
+        list.innerHTML = (typeof users !== 'undefined' && users.length) ? '' : 'Memuat data...';
+        if (typeof users !== 'undefined') {
+            users.forEach((u, i) => {
+                list.innerHTML += `<div class="panel" style="padding:10px; margin-bottom:5px; font-size:0.8rem;">
+                    <b>${u.name}</b> (${u.pin}) - ${u.status.toUpperCase()}<br>
+                    <p style="margin:5px 0; color:#94a3b8">${u.domisili || 'No Dom'}</p>
+                </div>`;
+            });
+        }
     }
 
     // --- APP LOGIC (TABS, MUSHAF, FETCH) ---
     function switchTab(name) {
-    document.getElementById('papan-area').style.display = (name === 'papan') ? 'block' : 'none';
-    document.getElementById('mushaf-area').style.display = (name === 'mushaf') ? 'block' : 'none';
-    document.getElementById('tab-papan-btn').classList.toggle('active', name === 'papan');
-    document.getElementById('tab-mushaf-btn').classList.toggle('active', name === 'mushaf');
+        document.getElementById('papan-area').style.display = (name === 'papan') ? 'block' : 'none';
+        document.getElementById('mushaf-area').style.display = (name === 'mushaf') ? 'block' : 'none';
+        document.getElementById('tab-papan-btn').classList.toggle('active', name === 'papan');
+        document.getElementById('tab-mushaf-btn').classList.toggle('active', name === 'mushaf');
     }
 
     async function bukaMushafPresisi() {
-    const s = document.getElementById('mushaf-surah').value;
-    const a = document.getElementById('mushaf-ayah').value;
-    if (!s || !a) return alert("Isi Surah & Ayat!");
-    try {
-    const res = await fetch(`https://api.alquran.cloud/v1/ayah/${s}:${a}`);
-    const d = await res.json();
-    window.open(`https://quran.kemenag.go.id/quran/per-halaman/surah/${s}?page=${d.data.page}`, '_blank');
-    } catch (e) { alert("Data tidak ditemukan."); }
+        const s = document.getElementById('mushaf-surah').value;
+        const a = document.getElementById('mushaf-ayah').value;
+        if (!s || !a) return alert("Isi Surah & Ayat!");
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/ayah/${s}:${a}`);
+            const d = await res.json();
+            window.open(`https://quran.kemenag.go.id/quran/per-halaman/surah/${s}?page=${d.data.page}`, '_blank');
+        } catch (e) { alert("Data tidak ditemukan."); }
     }
 
     async function fetchAyah() {
-    const s = document.getElementById('surah').value;
-    const a1 = parseInt(document.getElementById('start').value);
-    const a2 = parseInt(document.getElementById('end').value) || a1;
-    const col = document.getElementById('col').value;
-    const zone = document.getElementById('zone').value;
-    const zId = `${col}-${zone}`;
+        const s = document.getElementById('surah').value;
+        const a1 = parseInt(document.getElementById('start').value);
+        const a2 = parseInt(document.getElementById('end').value) || a1;
+        const col = document.getElementById('col').value;
+        const zone = document.getElementById('zone').value;
+        const zId = `${col}-${zone}`;
 
-    for (let i = a1; i <= a2; i++) { try { const res=await
-        fetch(`https://api.alquran.cloud/v1/ayah/${s}:${i}/quran-simple-clean`); const d=await res.json(); let
-        t=d.data.text; if (i===1 && s !=="1" && t.startsWith("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"))
-        t=t.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "" ).trim(); const
-        audio=`https://everyayah.com/data/Alafasy_128kbps/${s.padStart(3, '0' )}${i.toString().padStart(3, '0' )}.mp3`;
-        renderVerse(zId, i, t, audio, s); } catch (e) { console.log(e); } } } function renderVerse(zId, n, t, audio, s)
-        { const div=document.createElement('div'); div.className='verse-card' ; div.dataset.num=n; div.dataset.text=t;
-        div.dataset.zone=zId; div.dataset.audio=audio; div.dataset.surah=s; div.innerHTML=`<div>
-        <button onclick="playMurattal('${audio}')">🔊</button>
-        <button onclick="this.closest('.verse-card').remove()" style="color:var(--err); background:none; border:none;">×</button>
-        </div><span class="arabic"><b>${n}.</b> ${t}</span>`;
+        for (let i = a1; i <= a2; i++) { 
+            try { 
+                const res = await fetch(`https://api.alquran.cloud/v1/ayah/${s}:${i}/quran-simple-clean`); 
+                const d = await res.json(); 
+                let t = d.data.text; 
+                if (i === 1 && s !== "1" && t.startsWith("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")) {
+                    t = t.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "").trim(); 
+                }
+                const audio = `https://everyayah.com/data/Alafasy_128kbps/${s.padStart(3, '0')}${i.toString().padStart(3, '0')}.mp3`;
+                renderVerse(zId, i, t, audio, s); 
+            } catch (e) { console.log(e); } 
+        } 
+    } 
+    
+    function renderVerse(zId, n, t, audio, s) { 
+        const div = document.createElement('div'); 
+        div.className = 'verse-card'; 
+        div.dataset.num = n; 
+        div.dataset.text = t;
+        div.dataset.zone = zId; 
+        div.dataset.audio = audio; 
+        div.dataset.surah = s; 
+        div.innerHTML = `<div>
+            <button onclick="playMurattal('${audio}')">🔊</button>
+            <button onclick="this.closest('.verse-card').remove()" style="color:var(--err); background:none; border:none;">×</button>
+            </div><span class="arabic"><b>${n}.</b> ${t}</span>`;
         document.getElementById(zId).appendChild(div);
-        }
+    }
 
-        // --- QUIZ SYSTEM ---
-        function startSession(mode) {
+    // --- QUIZ SYSTEM ---
+    function startSession(mode) {
         const all = document.querySelectorAll('.verse-card');
         if (!all.length) return alert("Papan Kosong!");
         quizMode = mode; curSess = 0; maxSess = all.length;
@@ -597,42 +618,38 @@ async function handleRegisterSubmit() {
         all.forEach(card => card.classList.add('hidden-verse'));
         document.getElementById('quiz-ui').style.display = 'block';
         nextQuestion();
-        }
-
-        function nextQuestion() {
-        if (curSess >= maxSess) {
-        speak("Alhamdulillah, kuis selesai!", 'id-ID');
-        document.getElementById('quiz-ui').style.display = 'none';
-        document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('hidden-verse'));
-            const akurasiAkhir = document.getElementById('avg-acc').innerText;
-        const skorAkhir = document.getElementById('total-score').innerText;
-        
-        const teksShare = `Alhamdulillah! Baru saja menyelesaikan tantangan hafalan Al-Quran di Ikhtiarqu ✨\nSkor: ${skorAkhir}\nAkurasi: ${akurasiAkhir}\n\nYuk, kuatkan hafalan jalur langit bersamaku di Ikhtiarqu! 📖🚀`;
-        
-        // Membuat UI pop-up / alert konfirmasi share yang interaktif
-        setTimeout(() => {
-            if (navigator.share) {
-                // Fitur Share bawaan Smartphone (Bisa Share teks + Screenshot manual oleh user)
-                if (confirm("Alhamdulillah Kuis Selesai! 🎉\n\nIngin membagikan pencapaian hafalanmu ke Media Sosial (WhatsApp, IG, dll)? Jangan lupa ambil screenshot layarmu terlebih dahulu.")) {
-                    navigator.share({
-                        title: 'Pencapaian Ikhtiarqu',
-                        text: teksShare,
-                        url: 'https://jadiwah.github.io'
-                    }).catch(console.error);
-                }
-            } else {
-                // Fallback jika dibuka di browser PC/Laptop yang tidak mendukung Web Share API
-                if (confirm("Kuis Selesai! Ingin copas teks pencapaian untuk di-share ke media sosial?")) {
-                    navigator.clipboard.writeText(teksShare + " https://jadiwah.github.io");
-                    alert("Teks pencapaian berhasil disalin ke clipboard! Silakan buka Instagram/WhatsApp Anda lalu paste bersama screenshot-mu.");
-                }
-            }
-        }, 800);
-        
-        return;
     }
-        return;
+
+    function nextQuestion() {
+        if (curSess >= maxSess) {
+            speak("Alhamdulillah, kuis selesai!", 'id-ID');
+            document.getElementById('quiz-ui').style.display = 'none';
+            document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('hidden-verse'));
+            
+            // --- BLOK FITUR SHARE MEDIA SOSIAL ---
+            const akurasiAkhir = document.getElementById('avg-acc').innerText;
+            const skorAkhir = document.getElementById('total-score').innerText;
+            const teksShare = `Alhamdulillah! Baru saja menyelesaikan tantangan hafalan Al-Quran di Ikhtiarqu ✨\nSkor: ${skorAkhir}\nAkurasi: ${akurasiAkhir}\n\nYuk, kuatkan hafalan jalur langit bersamaku di Ikhtiarqu! 📖🚀`;
+            
+            setTimeout(() => {
+                if (navigator.share) {
+                    if (confirm("Alhamdulillah Kuis Selesai! 🎉\n\nIngin membagikan pencapaian hafalanmu ke Media Sosial? Jangan lupa ambil screenshot layarmu terlebih dahulu.")) {
+                        navigator.share({
+                            title: 'Pencapaian Ikhtiarqu',
+                            text: teksShare,
+                            url: 'https://jadiwah.github.io'
+                        }).catch(console.error);
+                    }
+                } else {
+                    if (confirm("Kuis Selesai! Ingin menyalin teks pencapaian untuk dibagikan ke media sosial?")) {
+                        navigator.clipboard.writeText(teksShare + " https://jadiwah.github.io");
+                        alert("Teks berhasil disalin! Silakan paste bersama screenshot terbaikmu di Instagram/WhatsApp.");
+                    }
+                }
+            }, 800);
+            return;
         }
+        
         targetAyah = ayahQueue[curSess];
         curSess++;
         const [side, pos] = targetAyah.dataset.zone.split('-');
@@ -643,64 +660,66 @@ async function handleRegisterSubmit() {
         document.querySelectorAll('.zone').forEach(z => z.classList.remove('active-target'));
 
         if (quizMode === 'lafal') {
-        recognition.lang = 'ar-SA';
-        const msg = `Baca ayat ke ${targetAyah.dataset.num} di ${side} ${pos}`;
-        document.getElementById('instruction').innerText = msg;
-        speak(msg, 'id-ID');
+            recognition.lang = 'ar-SA';
+            const msg = `Baca ayat ke ${targetAyah.dataset.num} di ${side} ${pos}`;
+            document.getElementById('instruction').innerText = msg;
+            speak(msg, 'id-ID');
         } else {
-        recognition.lang = 'id-ID';
-        document.getElementById('instruction').innerText = "Dengarkan murattal...";
-        playMurattal(targetAyah.dataset.audio, () => speak("Sebutkan posisi zona dan nomor ayat!", 'id-ID'));
+            recognition.lang = 'id-ID';
+            document.getElementById('instruction').innerText = "Dengarkan murattal...";
+            playMurattal(targetAyah.dataset.audio, () => speak("Sebutkan posisi zona dan nomor ayat!", 'id-ID'));
         }
-        }
+    }
 
-        function toggleMic() {
+    function toggleMic() {
         const btn = document.getElementById('mic-btn');
         if (btn.classList.contains('listening')) {
-        recognition.stop();
-        btn.classList.remove('listening');
-        btn.innerText = "🎤 Bicara";
-        setTimeout(processResult, 700);
+            recognition.stop();
+            btn.classList.remove('listening');
+            btn.innerText = "🎤 Bicara";
+            setTimeout(processResult, 700);
         } else {
-        lastSpeech = "";
-        recognition.start();
-        btn.classList.add('listening');
-        btn.innerText = "🛑 SELESAI";
+            lastSpeech = "";
+            recognition.start();
+            btn.classList.add('listening');
+            btn.innerText = "🛑 SELESAI";
         }
-        }
+    }
 
-        recognition.onresult = (e) => {
+    recognition.onresult = (e) => {
         lastSpeech = Array.from(e.results).map(r => r[0].transcript).join('');
         document.getElementById('live-preview').innerText = lastSpeech;
-        };
+    };
 
-        function processResult() {
+    function processResult() {
         let win = false;
         const input = lastSpeech.toLowerCase();
         const targetZone = targetAyah.dataset.zone;
         const [sideTarget, posTarget] = targetZone.split('-');
 
         if (quizMode === 'posisi') {
-        if (input.includes(sideTarget) && input.includes(posTarget) && input.includes(targetAyah.dataset.num)) win =
-        true;
+            if (input.includes(sideTarget) && input.includes(posTarget) && input.includes(targetAyah.dataset.num)) win = true;
         } else {
-        const tC = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").replace(/[أإآ]/g, "ا");
-        let matchCount = 0;
-        const words = tC.split(' ');
-        words.forEach(w => { if (input.includes(w)) matchCount++; });
-        if ((matchCount / words.length) >= 0.7) win = true;
+            const tC = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").replace(/[أإآ]/g, "ا");
+            let matchCount = 0;
+            const words = tC.split(' ');
+            words.forEach(w => { if (input.includes(w)) matchCount++; });
+            if ((matchCount / words.length) >= 0.7) win = true;
         }
 
         if (win) {
-        score += 10; corrects++; speak("Benar!", 'id-ID');
-        const now = new Date();
-        logHafalan.unshift({ surah: targetAyah.dataset.surah, ayat: targetAyah.dataset.num, tgl:
-        now.toLocaleDateString('id-ID'), jam: now.getHours().toString().padStart(2, '0') + ":" +
-        now.getMinutes().toString().padStart(2, '0') });
-        localStorage.setItem('iq_log', JSON.stringify(logHafalan));
-        updateLogDisplay();
+            score += 10; corrects++; speak("Benar!", 'id-ID');
+            const now = new Date();
+            logHafalan.unshift({ 
+                surah: targetAyah.dataset.surah, 
+                ayat: targetAyah.dataset.num, 
+                tgl: now.toLocaleDateString('id-ID'), 
+                jam: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') 
+            });
+            localStorage.setItem('iq_log', JSON.stringify(logHafalan));
+            updateLogDisplay();
         } else {
-        speak(quizMode === 'posisi' ? `Salah, di ${sideTarget} ${posTarget} ayat ${targetAyah.dataset.num}` : "Belum tepat coba diingat lagi", 'id-ID');
+            speak(quizMode === 'posisi' ? `Salah, di ${sideTarget} ${posTarget} ayat ${targetAyah.dataset.num}` : "Belum tepat coba diingat lagi", 'id-ID');
         }
 
         targetAyah.classList.remove('hidden-verse');
@@ -710,33 +729,50 @@ async function handleRegisterSubmit() {
         document.getElementById('next-btn').style.display = 'inline-block';
         document.getElementById('feedback-area').innerHTML = `<span class="arabic">${targetAyah.dataset.text}</span>`;
         document.getElementById(targetZone).classList.add('active-target');
-        }
+    }
 
-        // --- UTILS ---
-        function updateStats() {
-        localStorage.setItem('iq_score', score); localStorage.setItem('iq_corrects', corrects);
+    // --- UTILS ---
+    function updateStats() {
+        localStorage.setItem('iq_score', score); 
+        localStorage.setItem('iq_corrects', corrects);
         localStorage.setItem('iq_history', JSON.stringify(history));
-        document.getElementById('total-score').innerText = score; document.getElementById('total-correct').innerText =
-        corrects;
+        document.getElementById('total-score').innerText = score; 
+        document.getElementById('total-correct').innerText = corrects;
         document.getElementById('total-tests').innerText = history.length;
         const avg = history.length ? Math.round(history.reduce((a, b) => a + b.acc, 0) / history.length) : 0;
         document.getElementById('avg-acc').innerText = avg + "%";
-        }
-        function updateLogDisplay() {
+    }
+
+    function updateLogDisplay() {
         const list = document.getElementById('hafalan-log-list');
         if (logHafalan.length === 0) return;
         list.innerHTML = logHafalan.map(l => `<div class="log-item">
             <span>Surah ${l.surah}: ${l.ayat}</span><span>${l.tgl}</span></div>`).join('');
-        }
-        function playMurattal(url, cb) { if (currentAudio) currentAudio.pause(); currentAudio = new Audio(url);
-        currentAudio.onended = () => cb && cb(); currentAudio.play(); }
-        function speak(t, l, cb) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang =
-        l; u.onend = () => cb && cb(); window.speechSynthesis.speak(u); }
-        function resetBoard() { if (confirm("Reset Papan?")) document.querySelectorAll('.zone').forEach(z => z.innerHTML
-        = ''); }
-        function toggleSettings() { alert("Fitur PIN Mandiri segera hadir!"); }
+    }
 
-    </script>
+    function playMurattal(url, cb) { 
+        if (currentAudio) currentAudio.pause(); 
+        currentAudio = new Audio(url);
+        currentAudio.onended = () => cb && cb(); 
+        currentAudio.play(); 
+    }
+
+    function speak(t, l, cb) { 
+        window.speechSynthesis.cancel(); 
+        const u = new SpeechSynthesisUtterance(t); 
+        u.lang = l; 
+        u.onend = () => cb && cb(); 
+        window.speechSynthesis.speak(u); 
+    }
+
+    function resetBoard() { 
+        if (confirm("Reset Papan?")) document.querySelectorAll('.zone').forEach(z => z.innerHTML = ''); 
+    }
+
+    function toggleSettings() { 
+        alert("Fitur PIN Mandiri segera hadir!"); 
+    }
+</script>
 </body>
 
 </html>
