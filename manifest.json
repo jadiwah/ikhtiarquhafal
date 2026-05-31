@@ -1,7 +1,7 @@
 {
-  "name": "Ikhtiarqu - Sempatkan Hafalan Al-Quran",
+  "name": "Ikhtiarqu - Hafalan Al-Quran",
   "short_name": "Ikhtiarqu",
-  "description": "Aplikasi Papan Hafalan AL Quran Jalur Langit",
+  "description": "Aplikasi Papan Hafalan Presisi Jalur Langit",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f9f5eb",
@@ -9,14 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2904/2904843.png",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23b48a04'/><text x='50' y='60' font-family='sans-serif' font-size='30' fill='%23f9f5eb' text-anchor='middle'>IQ</text></svg>",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/svg+xml"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2904/2904843.png",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23b48a04'/><text x='50' y='60' font-family='sans-serif' font-size='30' fill='%23f9f5eb' text-anchor='middle'>IQ</text></svg>",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ]
 }
