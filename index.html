@@ -487,36 +487,46 @@ async function handleRegisterSubmit() {
     const name = document.getElementById('regName').value.trim();
     const pin = document.getElementById('regPin').value.trim();
 
-    // Validasi input
     if (!name || pin.length < 4) {
         return alert("Nama harus diisi dan PIN minimal 4 angka!");
     }
 
-    const formData = { action: 'register', name: name, pin: pin }; // Mengoreksi pembuatan objek
+    const formData = {
+        action: 'register',
+        name: name,
+        pin: pin
+    };
 
     try {
+        // Menggunakan metode POST yang clean untuk menghindari CORS error
         const response = await fetch(SCRIPT_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json;charset=utf-8" }, // Mengubah ke application/json
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
             body: JSON.stringify(formData)
         });
 
         const result = await response.json();
 
         if (result.status === "success") {
-            const pesan = `Assalamu'alaikum Admin, aktivasi akun Ikhtiarqu:\nNama: ${name}\nPIN: ${pin}`;
+            const pesan = `Assalamu'alaikum Admin, mohon aktivasi akun Ikhtiarqu baru saya:\nNama: ${name}\nPIN: ${pin}`;
+            
+            alert("Registrasi sukses di database! Klik Oke untuk mengirim pesan aktivasi ke WhatsApp Admin.");
+            
+            // Membuka WhatsApp di tab baru secara aman
             window.open(`https://wa.me/6285748110997?text=${encodeURIComponent(pesan)}`, '_blank');
-            alert("Terdaftar! Tunggu aktivasi Admin.");
+            
             location.reload();
         } else {
-            alert("Gagal mendaftar: " + result.message);
+            alert("Gagal mendaftar di server: " + result.message);
         }
     } catch (e) {
-        console.error(e);
-        alert("Gagal koneksi ke server Google Sheets.");
+        console.error("Detail Error:", e);
+        alert("Gagal koneksi ke server Google Sheets.\n\nTips: Pastikan URL Web App sudah benar dan diset ke 'Anyone' pada Apps Script.");
     }
-}
-    function handleLogout() {
+}    
+        function handleLogout() {
     currentUser = null;
     document.getElementById('main-app').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
@@ -595,6 +605,33 @@ async function handleRegisterSubmit() {
         speak("Alhamdulillah, kuis selesai!", 'id-ID');
         document.getElementById('quiz-ui').style.display = 'none';
         document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('hidden-verse'));
+            const akurasiAkhir = document.getElementById('avg-acc').innerText;
+        const skorAkhir = document.getElementById('total-score').innerText;
+        
+        const teksShare = `Alhamdulillah! Baru saja menyelesaikan tantangan hafalan Al-Quran di Ikhtiarqu ✨\nSkor: ${skorAkhir}\nAkurasi: ${akurasiAkhir}\n\nYuk, kuatkan hafalan jalur langit bersamaku di Ikhtiarqu! 📖🚀`;
+        
+        // Membuat UI pop-up / alert konfirmasi share yang interaktif
+        setTimeout(() => {
+            if (navigator.share) {
+                // Fitur Share bawaan Smartphone (Bisa Share teks + Screenshot manual oleh user)
+                if (confirm("Alhamdulillah Kuis Selesai! 🎉\n\nIngin membagikan pencapaian hafalanmu ke Media Sosial (WhatsApp, IG, dll)? Jangan lupa ambil screenshot layarmu terlebih dahulu.")) {
+                    navigator.share({
+                        title: 'Pencapaian Ikhtiarqu',
+                        text: teksShare,
+                        url: 'https://jadiwah.github.io'
+                    }).catch(console.error);
+                }
+            } else {
+                // Fallback jika dibuka di browser PC/Laptop yang tidak mendukung Web Share API
+                if (confirm("Kuis Selesai! Ingin copas teks pencapaian untuk di-share ke media sosial?")) {
+                    navigator.clipboard.writeText(teksShare + " https://jadiwah.github.io");
+                    alert("Teks pencapaian berhasil disalin ke clipboard! Silakan buka Instagram/WhatsApp Anda lalu paste bersama screenshot-mu.");
+                }
+            }
+        }, 800);
+        
+        return;
+    }
         return;
         }
         targetAyah = ayahQueue[curSess];
