@@ -1,0 +1,22 @@
+{
+  "name": "Ikhtiarqu - Sempatkan Hafalan Al-Quran",
+  "short_name": "Ikhtiarqu",
+  "description": "Aplikasi Papan Hafalan AL Quran Jalur Langit",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f9f5eb",
+  "theme_color": "#b48a04",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2904/2904843.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2904/2904843.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
