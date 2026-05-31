@@ -288,21 +288,29 @@
                 Daftar di sini</p>
         </div>
 
-        <div id="register-box" style="display:none; width: 300px;">
-            <div class="panel">
-                <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
-                <input type="text" id="regName" placeholder="Nama Lengkap" style="width:100%; margin-bottom:8px;">
-                <input type="email" id="regEmail" placeholder="Email" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regWA" placeholder="No. WhatsApp" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regDomisili" placeholder="Domisili" style="width:100%; margin-bottom:8px;">
-                <input type="text" id="regIG" placeholder="Instagram (tidak punya isi-)" style="width:100%; margin-bottom:8px;">
-                <input type="password" id="regPin" placeholder="Request PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
-                <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
-                <p onclick="toggleAuthMode()"
-                    style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
-                    Kembali ke Login</p>
-            </div>
-        </div>
+<div id="register-box" style="display:none; width: 300px;">
+    <div class="panel">
+        <h4 style="margin:0 0 10px 0; text-align: center;">Form Aktivasi</h4>
+        <input type="text" id="regName" placeholder="Nama" style="width:100%; margin-bottom:8px;">
+        <input type="password" id="regPin" placeholder="Buat PIN (min. 4 angka)" style="width:100%; margin-bottom:15px;">
+                <div
+                    style="background: #f8fafc; border: 1px dashed var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
+                    <p style="font-size: 0.75rem; margin: 0 0 5px 0; color: #475569;">⚠️ <b>Syarat Aktivasi:</b> Jadi anggota  grup</p>
+                    <a href="https://www.whatsapp.com/channel/0029VbCf6oVAojYsp6Ihlq2E" target="_blank" class="btn-wa-group"
+                        style="display: inline-block; background: #25D366; color: white; text-decoration: none; font-size: 0.75rem; padding: 5px 10px; border-radius: 4px; font-weight: bold;">
+                        ➔ KLIK UNTUK MASUK GRUP WA
+                    </a>
+                </div>
+        <button onclick="handleRegisterSubmit()" class="btn-accent" style="width:100%;">Kirim Aktivasi ke Admin</button>
+                <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center;">
+                    *Pastikan sudah join grup di atas agar admin dapat memverifikasi PIN Anda.
+                </p>
+        <p onclick="toggleAuthMode()"
+            style="color:var(--err); cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-align: center;">
+            Kembali ke Login
+        </p>
+    </div>
+</div>
         <p id="login-err" style="color:var(--err); margin-top:10px;"></p>
     </div>
 
@@ -474,20 +482,40 @@ errorEl.innerText = "📡 Gagal ambil data GSheet.";
 }
 }
 
+
 async function handleRegisterSubmit() {
-const name = document.getElementById('regName').value.trim();
-const email = document.getElementById('regEmail').value.trim();
-const wa = document.getElementById('regWA').value.trim();
-const dom = document.getElementById('regDomisili').value.trim();
-const ig = document.getElementById('regIG').value.trim() || "-";
-const pin = document.getElementById('regPin').value.trim();
-if (!name || !wa || pin.length < 4) return alert("Lengkapi data!"); const params=new URLSearchParams();
-    params.append('action', 'register' ); params.append('name', name); params.append('email', email);
-    params.append('wa', wa); params.append('domisili', dom); params.append('ig', ig); params.append('pin', pin); try {
-    fetch(SCRIPT_URL, { method: "POST" , mode: "no-cors" , body: params }); const pesan=`Assalamu'alaikum Admin,
-    aktivasi akun Ikhtiarqu:%0ANama: ${name}%0ADomisili: ${dom}%0APIN: ${pin}`;
-    window.open(`https://wa.me/6285748110997?text=${pesan}`, '_blank' ); alert("Terdaftar! Tunggu aktivasi Admin.");
-    location.reload(); } catch (e) { alert("Gagal koneksi."); } }
+    const name = document.getElementById('regName').value.trim();
+    const pin = document.getElementById('regPin').value.trim();
+
+    // Validasi input
+    if (!name || pin.length < 4) {
+        return alert("Nama harus diisi dan PIN minimal 4 angka!");
+    }
+
+    const formData = { action: 'register', name: name, pin: pin }; // Mengoreksi pembuatan objek
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json;charset=utf-8" }, // Mengubah ke application/json
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            const pesan = `Assalamu'alaikum Admin, aktivasi akun Ikhtiarqu:\nNama: ${name}\nPIN: ${pin}`;
+            window.open(`https://wa.me/6285748110997?text=${encodeURIComponent(pesan)}`, '_blank');
+            alert("Terdaftar! Tunggu aktivasi Admin.");
+            location.reload();
+        } else {
+            alert("Gagal mendaftar: " + result.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Gagal koneksi ke server Google Sheets.");
+    }
+}
     function handleLogout() {
     currentUser = null;
     document.getElementById('main-app').style.display = 'none';
