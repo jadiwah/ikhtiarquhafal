@@ -1,4 +1,5 @@
 {
+  "id": "/ikhtiarqu-app/",
   "name": "Ikhtiarqu - Hafalan Al-Quran",
   "short_name": "Ikhtiarqu",
   "description": "Aplikasi Papan Hafalan Presisi Jalur Langit",
@@ -9,14 +10,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23b48a04'/><text x='50' y='60' font-family='sans-serif' font-size='30' fill='%23f9f5eb' text-anchor='middle'>IQ</text></svg>",
+      "src": "https://images.unsplash.com/photo-1609599006353-e629eebe9420?q=80&w=192&auto=format&fit=crop",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23b48a04'/><text x='50' y='60' font-family='sans-serif' font-size='30' fill='%23f9f5eb' text-anchor='middle'>IQ</text></svg>",
+      "src": "https://images.unsplash.com/photo-1609599006353-e629eebe9420?q=80&w=512&auto=format&fit=crop",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/jpeg",
+      "purpose": "maskable"
     }
   ]
 }
