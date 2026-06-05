@@ -283,7 +283,7 @@
 
     <div id="auth-screen">
         <h1 style="color:var(--accent); letter-spacing: 4px; margin-bottom: 5px;">IKHTIARQU</h1>
-        <p style="color: #64748b; margin-bottom: 20px;">Hafalan Jalur Langit</p>
+        <p style="color: #64748b; margin-bottom: 20px;">Hafalan Jalur Langit by @ferdiansyah_ypf</p>
 
         <div id="login-box" style="text-align: center;">
             <input type="password" id="login-pin" placeholder="PIN" style="text-align:center; font-size:1.5rem; width:150px; margin-bottom:15px;"><br>
@@ -685,35 +685,39 @@ function toggleMic() {
     }
 
 recognition.onresult = (e) => {
-// 1. Ambil teks mentah dari Google Speech API apa adanya
-lastSpeech = Array.from(e.results).map(r => r[0].transcript).join('');
+    // 1. Ambil teks mentah dari Google Speech API apa adanya
+    lastSpeech = Array.from(e.results).map(r => r[0].transcript).join('');
+    
+    // 2. Jika kuis lafal sedang berjalan, lakukan restorasi visual Ta Marbutah (Kompatibel HP & PC)
+    if (quizMode === 'lafal' && targetAyah) {
+        // Ambil teks asli dari database, buang harakatnya saja agar bersih
+        const kataTargetArr = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").split(' ');
+        
+        // Pecah ucapan dari mic menjadi susunan kata
+        const kataInputArr = lastSpeech.split(' ');
+        
+        // Cocokkan kata per kata dengan toleransi penuh untuk HP
+        const hasilRestorasi = kataInputArr.map(kataInput => {
+            // Normalkan kata input ke versi 'ه' untuk perbandingan di HP
+            const inputVersiHa = kataInput.endsWith('ة') ? kataInput.slice(0, -1) + 'ه' : kataInput;
 
-// 2. Jika kuis lafal sedang berjalan, lakukan restorasi visual Ta Marbutah
-if (quizMode === 'lafal' && targetAyah) {
-// Ambil teks asli dari database, buang harakatnya saja agar bersih
-const kataTargetArr = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").split(' ');
-
-// Pecah ucapan dari mic menjadi susunan kata
-const kataInputArr = lastSpeech.split(' ');
-
-// Cocokkan kata per kata dengan metode Map yang aman dari bug regex
-const hasilRestorasi = kataInputArr.map(kataInput => {
-// Cari apakah ada kata di database yang jika diubah ke 'ه' akan sama dengan input mic
-const kataCocok = kataTargetArr.find(kataTarget => {
-const targetVersiHa = kataTarget.endsWith('ة') ? kataTarget.slice(0, -1) + 'ه' : kataTarget;
-return targetVersiHa === kataInput;
-});
-
-// Jika ketemu kata yang di mushaf pakai 'ة', pinjam 'ة' asli mushaf untuk tampilan layar
-return kataCocok ? kataCocok : kataInput;
-});
-
-// Gabungkan kembali menjadi kalimat utuh yang rapi di layar
-document.getElementById('live-preview').innerText = hasilRestorasi.join(' ');
-} else {
-// Jika kuis posisi (Bahasa Indonesia), tampilkan teks mentah langsung tanpa filter
-document.getElementById('live-preview').innerText = lastSpeech;
-}
+            // Cari kata yang cocok di target ayat mushaf
+            const kataCocok = kataTargetArr.find(kataTarget => {
+                const targetVersiHa = kataTarget.endsWith('ة') ? kataTarget.slice(0, -1) + 'ه' : kataTarget;
+                // Jika versi fonetiknya sama, berarti ini kata yang dimaksud!
+                return targetVersiHa === inputVersiHa;
+            });
+            
+            // Jika di mushaf aslinya pakai 'ة', paksa layar HP menampilkan 'ة' asli mushaf
+            return kataCocok ? kataCocok : kataInput;
+        });
+        
+        // Gabungkan kembali menjadi kalimat utuh untuk live preview
+        document.getElementById('live-preview').innerText = hasilRestorasi.join(' ');
+    } else {
+        // Jika kuis posisi (Bahasa Indonesia), tampilkan teks mentah langsung tanpa filter
+        document.getElementById('live-preview').innerText = lastSpeech;
+    }
 };
 
 
