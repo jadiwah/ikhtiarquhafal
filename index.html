@@ -343,119 +343,93 @@
         <div class="tab-container">
             <button id="tab-papan-btn" class="tab-btn active" onclick="switchTab('papan')">📊 Papan</button>
             <button id="tab-mushaf-btn" class="tab-btn" onclick="switchTab('mushaf')">📖 Mushaf</button>
-            <button id="tab-materi-btn" class="tab-btn" onclick="switchTab('materi')">💡 Materi Makhraj</button>
         </div>
 
-<!-- ======================================================= -->
-<!-- 1. AREA UTAMA PAPAN (SEMUA YANG BERHUBUNGAN DENGAN PAPAN) -->
-<!-- ======================================================= -->
-<div id="papan-area">
-
-    <!-- Blok Skor (Header) -->
-    <div class="header">
-        <div><span class="stat-val" id="total-score">0</span>Skor</div>
-        <div><span class="stat-val" id="total-tests">0</span>Kuis</div>
-        <div><span class="stat-val" id="avg-acc">0%</span>Akurasi</div>
-        <div><span class="stat-val" id="total-correct">0</span>Benar</div>
-    </div>
-
-    <!-- Panel Log Hafalan -->
-    <div class="panel">
-        <details>
-            <summary style="cursor:pointer; color:var(--accent); font-weight: bold;">📝 Log Hafalan Terverifikasi
-            </summary>
-            <div id="hafalan-log-list" style="margin-top:10px; max-height: 150px; overflow-y: auto;">
-                <p style="font-size: 0.8rem; color:#64748b;">Belum ada hafalan yang tercatat.</p>
+        <div id="papan-area">
+            <div class="header">
+                <div><span class="stat-val" id="total-score">0</span>Skor</div>
+                <div><span class="stat-val" id="total-tests">0</span>Kuis</div>
+                <div><span class="stat-val" id="avg-acc">0%</span>Akurasi</div>
+                <div><span class="stat-val" id="total-correct">0</span>Benar</div>
             </div>
-        </details>
-    </div>
 
-    <!-- Panel Input Form (Surah, Ayat, Kolom, Zona, Tombol Tambah & Reset) -->
-    <div class="panel">
-        <div class="input-row">
-            <input type="number" id="surah" placeholder="Sura" style="width: 60px;">
-            <input type="number" id="start" placeholder="Ayat" style="width: 50px;">
-            <input type="number" id="end" placeholder="S/d" style="width: 50px;">
+            <div class="panel">
+                <details>
+                    <summary style="cursor:pointer; color:var(--accent); font-weight: bold;">📝 Log Hafalan
+                        Terverifikasi</summary>
+                    <div id="hafalan-log-list" style="margin-top:10px; max-height: 150px; overflow-y: auto;">
+                        <p style="font-size: 0.8rem; color:#64748b;">Belum ada hafalan yang tercatat.</p>
+                    </div>
+                </details>
+            </div>
 
-            <select id="col">
-                <option value="kiri">KIRI</option>
-                <option value="kanan">KANAN</option>
-            </select>
+            <div class="panel">
+                <div class="input-row">
+                    <input type="number" id="surah" placeholder="Sura" style="width: 60px;">
+                    <input type="number" id="start" placeholder="Ayat" style="width: 50px;">
+                    <input type="number" id="end" placeholder="S/d" style="width: 50px;">
 
-            <select id="zone">
-                <option value="atas">ATAS</option>
-                <option value="tengah">TENGAH</option>
-                <option value="bawah">BAWAH</option>
-            </select>
+                    <select id="col">
+        <option value="kiri">KIRI</option>
+        <option value="kanan">KANAN</option>
+    </select>
 
-            <button onclick="fetchAyah()" class="btn-accent">Tambah</button>
+                    <select id="zone">
+        <option value="atas">ATAS</option>
+        <option value="tengah">TENGAH</option>
+        <option value="bawah">BAWAH</option>
+    </select>
+
+                    <button onclick="fetchAyah()" class="btn-accent">Tambah</button>
+                </div>
+                <button onclick="resetBoard()" class="btn-err">Reset</button>
+            </div>
+            <div class="input-row">
+                <button class="btn-warn" onclick="startSession('lafal')">Kuis Hafalan</button>
+                <button class="btn-warn" onclick="startSession('posisi')" style="background:var(--admin); color:white;">Kuis Posisi</button>
+            </div>
         </div>
-        <button onclick="resetBoard()" class="btn-err">Reset</button>
-    </div>
 
-    <!-- Baris Tombol Aktivasi Kuis -->
-    <div class="input-row">
-        <button class="btn-warn" onclick="startSession('lafal')">Kuis Hafalan</button>
-        <button class="btn-warn" onclick="startSession('posisi')" style="background:var(--admin); color:white;">Kuis Posisi</button>
-    </div>
-
-    <!-- Papan Grid Visual KIRI & KANAN -->
-    <div class="board">
-        <div class="column">
-            <h5 style="text-align:center;">KIRI</h5>
-            <div id="kiri-atas" class="zone"></div>
-            <div id="kiri-tengah" class="zone"></div>
-            <div id="kiri-bawah" class="zone"></div>
+        <div class="quiz-box" id="quiz-ui" style="display:none;">
+            <h4 id="session-info" style="color:var(--accent); margin:0;">1 / 5</h4>
+            <p id="instruction" style="margin: 10px 0; font-weight: bold;">Instruksi...</p>
+            <div id="live-preview" class="arabic">...</div>
+            <button id="mic-btn" onclick="toggleMic()" class="btn-warn" style="padding:15px 40px; border-radius:50px;">🎤 Bicara</button>
+            <button id="next-btn" onclick="nextQuestion()" class="btn-accent" style="display:none; padding:15px 40px; border-radius:50px;">➡️ Lanjut</button>
+            <div id="feedback-area" style="margin-top:15px;"></div>
         </div>
-        <div class="column">
-            <h5 style="text-align:center;">KANAN</h5>
-            <div id="kanan-atas" class="zone"></div>
-            <div id="kanan-tengah" class="zone"></div>
-            <div id="kanan-bawah" class="zone"></div>
+
+        <div class="board">
+            <div class="column">
+                <h5 style="text-align:center;">KIRI</h5>
+                <div id="kiri-atas" class="zone"></div>
+                <div id="kiri-tengah" class="zone"></div>
+                <div id="kiri-bawah" class="zone"></div>
+            </div>
+            <div class="column">
+                <h5 style="text-align:center;">KANAN</h5>
+                <div id="kanan-atas" class="zone"></div>
+                <div id="kanan-tengah" class="zone"></div>
+                <div id="kanan-bawah" class="zone"></div>
+            </div>
         </div>
-    </div>
-
-</div>
-<!-- ======================================================= -->
-<!-- AKHIR DARI AREA UTAMA PAPAN (Tutup Div Harus Di Sini!)   -->
-<!-- ======================================================= -->
 
 
-<!-- ======================================================= -->
-<!-- 2. AREA UTAMA MUSHAF                                    -->
-<!-- ======================================================= -->
-<div id="mushaf-area" style="display:none;">
-    <div class="panel">
-        <div class="input-row">
-            <input type="number" id="mushaf-surah" placeholder="Sura" style="width: 70px;">
-            <input type="number" id="mushaf-ayah" placeholder="Ayat" style="width: 70px;">
-            <button onclick="bukaMushafPresisi()" class="btn-accent">Buka di Kemenag</button>
-        </div>
-        <p style="font-size: 0.75rem; color:#64748b; text-align: center;">Membuka Mushaf 15 Baris sesuai posisi ayat.
-        </p>
-    </div>
-</div>
-
-
-<!-- ======================================================= -->
-<!-- 3. AREA UTAMA MATRI MAKHRAJ                             -->
-<!-- ======================================================= -->
-<div id="materi-area" style="display:none;">
-    <div class="panel">
-        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">📖 Kelas Dasar: Makharijul Huruf</h3>
-        <p style="font-size: 0.8rem; color:#94a3b8; text-align: center; margin-bottom: 20px;">
-            Pelajari letak keluarnya huruf hijaiyah agar pelafalan kuis Anda semakin mutqin.
-        </p>
-        <div id="makhraj-loading" style="text-align: center; color: var(--warn); display: none;">Memuat materi
-            makhraj...</div>
-        <div id="makhraj-list-container"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-            <!-- Kartu materi otomatis masuk ke sini -->
+        <div id="mushaf-area" style="display:none;">
+            <div class="panel">
+                <div class="input-row">
+                    <input type="number" id="mushaf-surah" placeholder="Sura" style="width: 70px;">
+                    <input type="number" id="mushaf-ayah" placeholder="Ayat" style="width: 70px;">
+                    <button onclick="bukaMushafPresisi()" class="btn-accent">Buka di Kemenag</button>
+                </div>
+                <p style="font-size: 0.75rem; color:#64748b; text-align: center;">Membuka Mushaf 15 Baris sesuai posisi
+                    ayat.</p>
+            </div>
         </div>
     </div>
-</div>
+
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuFzZ6fpkzazcUgQY8QSTP04BIBALuQH2YKhlrCaYCHX9QLhKN8AkAuMFlyKoU7jUXEg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuFzZ6fpkzazcUgQY8QSTP04BIBALuQH2YKhlrCaYCHX9QLhKN8AkAuMFlyKoU7jUXEg/exec ";
 
     let currentUser = null;
     let score = parseInt(localStorage.getItem('iq_score')) || 0;
@@ -584,74 +558,14 @@
         }
     }
 
-function switchTab(name) {
-// Tampilkan container yang dipilih, sembunyikan sisanya
-document.getElementById('papan-area').style.display = (name === 'papan') ? 'block' : 'none';
-document.getElementById('mushaf-area').style.display = (name === 'mushaf') ? 'block' : 'none';
-document.getElementById('materi-area').style.display = (name === 'materi') ? 'block' : 'none';
-
-// Sinkronisasi kelas aktif pada tombol navigasi
-document.getElementById('tab-papan-btn').classList.toggle('active', name === 'papan');
-document.getElementById('tab-mushaf-btn').classList.toggle('active', name === 'mushaf');
-
-const tabMateriBtn = document.getElementById('tab-materi-btn');
-if (tabMateriBtn) {
-tabMateriBtn.classList.toggle('active', name === 'materi');
-}
-
-// Ambil data makhraj jika tab materi diakses
-if (name === 'materi') {
-loadMateriMakhraj();
-}
-}
-
-let materiMakhrajLoaded = false;
-
-async function loadMateriMakhraj() {
-    if (materiMakhrajLoaded) return; 
-    
-    const container = document.getElementById('makhraj-list-container');
-    const loadingSign = document.getElementById('makhraj-loading');
-    
-    try {
-        const response = await fetch(SCRIPT_URL + "?get=makhraj"); 
-        const dataMakhraj = await response.json();
-        
-        loadingSign.style.display = 'none';
-        container.innerHTML = "";
-        
-        if (!dataMakhraj || dataMakhraj.length === 0) {
-            container.innerHTML = "<p style='color: var(--err); text-align:center;'>Materi tidak ditemukan. Pastikan nama tab spreadsheet Anda bernilai 'Makhraj' dengan baris pertama sebagai header.</p>";
-            return;
-        }
-        
-        dataMakhraj.forEach(m => {
-            // Pemetaan nilai toleran huruf kapital dari response JSON
-            const huruf = m.huruf || m.Huruf || "-";
-            const nama = m.nama_makhraj || m.Nama_Makhraj || "Makhraj";
-            const letak = m.deskripsi_letak || m.Deskripsi_Letak || "Deskripsi belum diisi.";
-
-            container.innerHTML += `
-                <div class="panel" style="background: var(--card); border-left: 4px solid var(--admin); margin-bottom: 0; padding: 15px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 1.8rem; font-family: 'Amiri', serif; font-weight: bold; color: var(--accent); background: rgba(16, 185, 129, 0.1); padding: 5px 15px; border-radius: 8px;">
-                            ${huruf}
-                        </span>
-                        <b style="color: var(--warn); font-size: 0.9rem; text-transform: uppercase;">${nama}</b>
-                    </div>
-                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #f8fafc; line-height: 1.4;">
-                        ${letak}
-                    </p>
-                </div>
-            `;
-        });
-        
-        materiMakhrajLoaded = true;
-    } catch (e) {
-        console.error(e);
-        loadingSign.innerText = "❌ Gagal memproses data makhraj dari server.";
+    // --- APP LOGIC (TABS, MUSHAF, FETCH) ---
+    function switchTab(name) {
+        document.getElementById('papan-area').style.display = (name === 'papan') ? 'block' : 'none';
+        document.getElementById('mushaf-area').style.display = (name === 'mushaf') ? 'block' : 'none';
+        document.getElementById('tab-papan-btn').classList.toggle('active', name === 'papan');
+        document.getElementById('tab-mushaf-btn').classList.toggle('active', name === 'mushaf');
     }
-}
+
     async function bukaMushafPresisi() {
         const s = document.getElementById('mushaf-surah').value;
         const a = document.getElementById('mushaf-ayah').value;
