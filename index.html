@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <link rel="manifest" href="manifest.json">
-    
+
     <title>Ikhtiarqu - Hafalan Al-Quran</title>
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2904/2904843.png">
@@ -614,6 +615,16 @@
     }
 
     // --- QUIZ SYSTEM ---
+    function normalisasiTeksArab(teks) {
+    if (!teks) return "";
+    return teks
+    .replace(/[\u064B-\u0652]/g, "") // Hapus harakat
+    .replace(/[آأإ]/g, "ا") // Normalisasi Alif
+    .replace(/[ةت]/g, "ه") // Normalisasi Ta Marbutah & Ta ke Ha
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+    }
     function startSession(mode) {
         const all = document.querySelectorAll('.verse-card');
         if (!all.length) return alert("Papan Kosong!");
@@ -624,58 +635,41 @@
         nextQuestion();
     }
 
-    function nextQuestion() {
-        if (curSess >= maxSess) {
-            speak("Alhamdulillah, kuis selesai!", 'id-ID');
-            document.getElementById('quiz-ui').style.display = 'none';
-            document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('hidden-verse'));
-            
-            // --- BLOK FITUR SHARE MEDIA SOSIAL ---
-            const akurasiAkhir = document.getElementById('avg-acc').innerText;
-            const skorAkhir = document.getElementById('total-score').innerText;
-            const teksShare = `Alhamdulillah! Baru saja menyelesaikan tantangan hafalan Al-Quran di Ikhtiarqu ✨\nSkor: ${skorAkhir}\nAkurasi: ${akurasiAkhir}\n\nYuk, kuatkan hafalan jalur langit bersamaku di Ikhtiarqu! 📖🚀`;
-            
-            setTimeout(() => {
-                if (navigator.share) {
-                    if (confirm("Alhamdulillah Kuis Selesai! 🎉\n\nIngin membagikan pencapaian hafalanmu ke Media Sosial? Jangan lupa ambil screenshot layarmu terlebih dahulu.")) {
-                        navigator.share({
-                            title: 'Pencapaian Ikhtiarqu',
-                            text: teksShare,
-                            url: 'https://jadiwah.github.io'
-                        }).catch(console.error);
-                    }
-                } else {
-                    if (confirm("Kuis Selesai! Ingin menyalin teks pencapaian untuk dibagikan ke media sosial?")) {
-                        navigator.clipboard.writeText(teksShare + " https://jadiwah.github.io");
-                        alert("Teks berhasil disalin! Silakan paste bersama screenshot terbaikmu di Instagram/WhatsApp.");
-                    }
-                }
-            }, 800);
-            return;
-        }
-        
-        targetAyah = ayahQueue[curSess];
-        curSess++;
-        const [side, pos] = targetAyah.dataset.zone.split('-');
-        document.getElementById('session-info').innerText = `${curSess} / ${maxSess}`;
-        document.getElementById('mic-btn').style.display = 'inline-block';
-        document.getElementById('next-btn').style.display = 'none';
-        document.getElementById('feedback-area').innerHTML = '';
-        document.querySelectorAll('.zone').forEach(z => z.classList.remove('active-target'));
+function nextQuestion() {
+if (curSess >= maxSess) {
+speak("Alhamdulillah, kuis selesai!", 'id-ID');
+document.getElementById('quiz-ui').style.display = 'none';
+// Kembalikan semua kartu ayat agar tidak tersembunyi lagi
+document.querySelectorAll('.verse-card').forEach(card => card.classList.remove('hidden-verse'));
 
-        if (quizMode === 'lafal') {
-            recognition.lang = 'ar-SA';
-            const msg = `Baca ayat ke ${targetAyah.dataset.num} di ${side} ${pos}`;
-            document.getElementById('instruction').innerText = msg;
-            speak(msg, 'id-ID');
-        } else {
-            recognition.lang = 'id-ID';
-            document.getElementById('instruction').innerText = "Dengarkan murattal...";
-            playMurattal(targetAyah.dataset.audio, () => speak("Sebutkan posisi zona dan nomor ayat!", 'id-ID'));
-        }
-    }
+// Memunculkan alert standar penanda kuis selesai tanpa embel-embel share medsos
+setTimeout(() => {
+alert("Alhamdulillah Kuis Selesai! 🎉\nSemoga hafalan Anda semakin mutqin. Yuk ajak temanmu hafalan bareng");
+}, 300);
+return;
+}
 
-    function toggleMic() {
+targetAyah = ayahQueue[curSess];
+curSess++;
+const [side, pos] = targetAyah.dataset.zone.split('-');
+document.getElementById('session-info').innerText = `${curSess} / ${maxSess}`;
+document.getElementById('mic-btn').style.display = 'inline-block';
+document.getElementById('next-btn').style.display = 'none';
+document.getElementById('feedback-area').innerHTML = '';
+document.querySelectorAll('.zone').forEach(z => z.classList.remove('active-target'));
+
+if (quizMode === 'lafal') {
+recognition.lang = 'ar-SA';
+const msg = `Baca ayat ke ${targetAyah.dataset.num} di ${side} ${pos}`;
+document.getElementById('instruction').innerText = msg;
+speak(msg, 'id-ID');
+} else {
+recognition.lang = 'id-ID';
+document.getElementById('instruction').innerText = "Dengarkan murattal...";
+playMurattal(targetAyah.dataset.audio, () => speak("Sebutkan posisi zona dan nomor ayat!", 'id-ID'));
+}
+}
+function toggleMic() {
         const btn = document.getElementById('mic-btn');
         if (btn.classList.contains('listening')) {
             recognition.stop();
@@ -690,10 +684,38 @@
         }
     }
 
-    recognition.onresult = (e) => {
-        lastSpeech = Array.from(e.results).map(r => r[0].transcript).join('');
-        document.getElementById('live-preview').innerText = lastSpeech;
-    };
+recognition.onresult = (e) => {
+// 1. Ambil teks mentah dari Google Speech API apa adanya
+lastSpeech = Array.from(e.results).map(r => r[0].transcript).join('');
+
+// 2. Jika kuis lafal sedang berjalan, lakukan restorasi visual Ta Marbutah
+if (quizMode === 'lafal' && targetAyah) {
+// Ambil teks asli dari database, buang harakatnya saja agar bersih
+const kataTargetArr = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").split(' ');
+
+// Pecah ucapan dari mic menjadi susunan kata
+const kataInputArr = lastSpeech.split(' ');
+
+// Cocokkan kata per kata dengan metode Map yang aman dari bug regex
+const hasilRestorasi = kataInputArr.map(kataInput => {
+// Cari apakah ada kata di database yang jika diubah ke 'ه' akan sama dengan input mic
+const kataCocok = kataTargetArr.find(kataTarget => {
+const targetVersiHa = kataTarget.endsWith('ة') ? kataTarget.slice(0, -1) + 'ه' : kataTarget;
+return targetVersiHa === kataInput;
+});
+
+// Jika ketemu kata yang di mushaf pakai 'ة', pinjam 'ة' asli mushaf untuk tampilan layar
+return kataCocok ? kataCocok : kataInput;
+});
+
+// Gabungkan kembali menjadi kalimat utuh yang rapi di layar
+document.getElementById('live-preview').innerText = hasilRestorasi.join(' ');
+} else {
+// Jika kuis posisi (Bahasa Indonesia), tampilkan teks mentah langsung tanpa filter
+document.getElementById('live-preview').innerText = lastSpeech;
+}
+};
+
 
     function processResult() {
         let win = false;
@@ -703,14 +725,31 @@
 
         if (quizMode === 'posisi') {
             if (input.includes(sideTarget) && input.includes(posTarget) && input.includes(targetAyah.dataset.num)) win = true;
-        } else {
-            const tC = targetAyah.dataset.text.replace(/[\u064B-\u065F\u0670]/g, "").replace(/[أإآ]/g, "ا");
-            let matchCount = 0;
-            const words = tC.split(' ');
-            words.forEach(w => { if (input.includes(w)) matchCount++; });
-            if ((matchCount / words.length) >= 0.7) win = true;
-        }
+} else {
+// 1. Bersihkan kedua teks secara total menggunakan fungsi expert Anda
+const teksTargetNormal = normalisasiTeksArab(targetAyah.dataset.text);
+const teksInputNormal = normalisasiTeksArab(input);
 
+// 2. Pecah input dari mic menjadi sebuah Array kata
+const kataInputArr = teksInputNormal.split(' ');
+
+// 3. Pecah teks target (kunci jawaban) menjadi Array kata
+const kataTargetArr = teksTargetNormal.split(' ');
+
+let matchCount = 0;
+
+// 4. Periksa apakah setiap kata di kunci jawaban ada di dalam ucapan user
+kataTargetArr.forEach(kataTarget => {
+if (kataInputArr.includes(kataTarget)) {
+matchCount++;
+}
+});
+
+// 5. Hitung persentase akurasi berdasarkan jumlah kata kunci yang berhasil ditebak
+if (kataTargetArr.length > 0 && (matchCount / kataTargetArr.length) >= 0.7) {
+win = true;
+}
+}
         if (win) {
             score += 10; corrects++; speak("Benar!", 'id-ID');
             const now = new Date();
@@ -783,7 +822,7 @@
             .catch(err => console.error('PWA Service Worker Gagal Didaftarkan:', err));
     });
 }
-</script>
+    </script>
 </body>
 
 </html>
