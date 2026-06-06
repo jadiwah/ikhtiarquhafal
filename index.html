@@ -602,8 +602,6 @@ loadMateriMakhraj();
 }
 }
 
-let materiMakhrajLoaded = false;
-
 async function loadMateriMakhraj() {
     if (materiMakhrajLoaded) return; 
     
@@ -612,7 +610,9 @@ async function loadMateriMakhraj() {
     
     try {
         const response = await fetch(SCRIPT_URL + "?get=makhraj"); 
+        console.log("Response:", response); // Tambahkan log ini
         const dataMakhraj = await response.json();
+        console.log("Data Makhraj:", dataMakhraj); // Tambahkan log ini
         
         loadingSign.style.display = 'none';
         container.innerHTML = "";
