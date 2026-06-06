@@ -461,6 +461,7 @@
     let history = JSON.parse(localStorage.getItem('iq_history')) || [];
     let logHafalan = JSON.parse(localStorage.getItem('iq_log')) || [];
     let quizMode = '', curSess = 0, maxSess = 0, targetAyah = null, lastSpeech = '', currentAudio = null, ayahQueue = [];
+    let materiMakhrajLoaded = false;
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRec();
